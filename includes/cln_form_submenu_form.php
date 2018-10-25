@@ -1,6 +1,6 @@
 <h1>Reportes del Club de la Nación</h1>
 <div>
-  <h3>Elige el rango de fecha</h3>
+  <h3>Elige el rango de días</h3>
   <form action="" method="POST">
     <label>Fecha inicial</label>
     <input type="date" name="initial-date">
