@@ -13,9 +13,9 @@
  * @package           Cln_custom_plugin
  *
  * @wordpress-plugin
- * Plugin Name:       Cln
+ * Plugin Name:       Club De la Nación
  * Plugin URI:        cln_custom_plugin
- * Description:       This is a short description of what the plugin does. It's displayed in the WordPress admin area.
+ * Description:       Este es un plugin que aplica un descuento especial a los clientes pertenecientes al Club de La Nación
  * Version:           1.0.0
  * Author:            Maria
  * Author URI:        https://espartadevs.website/portafolio
@@ -93,41 +93,25 @@ function cln_create_db_table(){
   global $cln_db_version;
 
   $table_name = $wpdb->prefix . 'cln_discount_register';
+  
+  if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'" ) != $table_name) {
+    $charset_collate = $wpdb->get_charset_collate();
 
-  $charset_collate = $wpdb->get_charset_collate();
+    $sql = "CREATE TABLE $table_name (
+      id mediumint(9) NOT NULL AUTO_INCREMENT,
+      time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+      cln_rate int NOT NULL,
+      PRIMARY KEY  (id)
+    ) $charset_collate;";
 
-  $sql = "CREATE TABLE $table_name (
-    id mediumint(9) NOT NULL AUTO_INCREMENT,
-    time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
-    cln_rate int NOT NULL,
-    PRIMARY KEY  (id)
-  ) $charset_collate;";
-
-  dbDelta( $sql );
-  add_option( 'cln_db_version', $cln_db_version );
+    dbDelta( $sql );
+    add_option( 'cln_db_version', $cln_db_version );
+    add_option( 'cln_rate', 20 );
+  }
 }
-
-// function cln_install_data(){
-  // global $wpdb;
-  // global $pagenow;
-
-  // if ( is_admin() && $pagenow !== 'plugins.php' ){
-    // $descuento = '20%';
-    // $table_name = $wpdb->prefix . 'opts_cln_admin_panel';
-
-    // $wpdb->insert(
-      // $table_name,
-      // array(
-        // 'time' => current_time( 'mysql' ),
-        // 'descuento' => $descuento
-      // )
-    // );
-  // }
-// }
 
 register_activation_hook (__FILE__, 'cln_create_db_table');
 register_activation_hook (__FILE__, 'cln_start');
-// register_activation_hook (__FILE__, 'cln_install_data');
 
 add_action('woocommerce_loaded', 'cln_start');
 function cln_start(){
@@ -162,7 +146,7 @@ add_action('admin_menu', 'cln_admin_submenu_1');
 // Creación del Menus de administración
 function cln_admin_menu(){
   add_menu_page(
-    'Titulo de pagina', //Titulo pagina
+    'Club de la nacion', //Titulo pagina
     'Club de la Nación', //Titulo menu
     'manage_options', //Capacidad
     'cln-admin-menu', //Slug
@@ -173,7 +157,7 @@ function cln_admin_menu(){
 
 // add_submenu_page( $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, callable $function = '' );
 function cln_admin_submenu_1(){
-  add_submenu_page(
+  add_submenu_page( 
     'cln-admin-menu', //parent_slug
     'reportes', //Titulo pagina
     'Reportes', //Titulo menu
@@ -190,23 +174,10 @@ function cln_form(){
 }
 
 function cln_form_submenu_1(){
-
-
+  include "includes/cln_form_submenu_form.php";
 }
 // Fin Handlers de administración
 
-// add_action('woocommerce_review_order_after_order_total', 'add_btn_descuento_cln');
-
-// function add_btn_descuento_cln(){
-  // echo '
-    // <form action="llamarAlaApi" method="get">
-      // <div id="cln-btn" style="display:inline-block;">
-        // <label for="cln_cod" style="display:block;">Código de descuento CLN</label>
-        // <input type="text" name="cln_cod" id="cln_cod">
-      // </div>
-      // <div style="display:inline-block;">
-        // <button type="submit">Aplicar descuento</button>
-      // </div>
-    // </form>
-  // ';
-// }
+function cln_export_csv(){
+  
+}
