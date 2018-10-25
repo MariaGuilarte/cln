@@ -79,7 +79,6 @@ function run_cln_custom_plugin() {
 
 	$plugin = new Cln_custom_plugin();
 	$plugin->run();
-
 }
 
 run_cln_custom_plugin();
@@ -94,7 +93,7 @@ function cln_create_db_table(){
   global $cln_db_version;
 
   $table_name = $wpdb->prefix . 'cln_discount_register';
-  
+
   $charset_collate = $wpdb->get_charset_collate();
 
   $sql = "CREATE TABLE $table_name (
@@ -111,23 +110,49 @@ function cln_create_db_table(){
 // function cln_install_data(){
   // global $wpdb;
   // global $pagenow;
-   
+
   // if ( is_admin() && $pagenow !== 'plugins.php' ){
     // $descuento = '20%';
     // $table_name = $wpdb->prefix . 'opts_cln_admin_panel';
-    
+
     // $wpdb->insert(
-      // $table_name, 
-      // array( 
+      // $table_name,
+      // array(
         // 'time' => current_time( 'mysql' ),
         // 'descuento' => $descuento
-      // ) 
+      // )
     // );
   // }
 // }
 
-register_activation_hook (__FILE__, 'cln_create_db_table'); 
+register_activation_hook (__FILE__, 'cln_create_db_table');
+register_activation_hook (__FILE__, 'cln_start');
 // register_activation_hook (__FILE__, 'cln_install_data');
+
+add_action('woocommerce_loaded', 'cln_start');
+function cln_start(){
+	require_once('includes/cln-wc-ajax-class.php');
+}
+
+add_action('woocommerce_cart_coupon', 'include_cln_form_group');
+function include_cln_form_group(){
+  include( plugin_dir_path( __FILE__ ) . 'includes/cln-form-group.php');
+}
+
+add_action('wp_enqueue_scripts', 'cln_enqueue_scripts');
+function cln_enqueue_scripts(){
+	wp_deregister_script('wc-cart');
+  wp_dequeue_script('wc-cart');
+	wp_enqueue_script('wc-cart', plugin_dir_url( __FILE__ ) . 'public/js/cart.min.js', array(), '1.0.0', true);
+}
+
+add_action('woocommerce_cart_calculate_fees', 'apply_cln_discount');
+function apply_cln_discount($cart){
+  if( WC()->session->get('is_cln_member') ){
+    $discount = WC()->cart->subtotal * get_option('cln_rate') * .01;
+    $cart->add_fee('DescuentoCLN', -$discount);
+  }
+}
 
 
 // Hooks de los menús de administración
@@ -148,7 +173,7 @@ function cln_admin_menu(){
 
 // add_submenu_page( $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, callable $function = '' );
 function cln_admin_submenu_1(){
-  add_submenu_page( 
+  add_submenu_page(
     'cln-admin-menu', //parent_slug
     'reportes', //Titulo pagina
     'Reportes', //Titulo menu
@@ -185,4 +210,3 @@ function cln_form_submenu_1(){
     // </form>
   // ';
 // }
-
